@@ -106,7 +106,7 @@ var processBurst = function (connection, object, burst) {
         break;
       case 'delete':
         delete object[property];
-        unset[ray.path] = "";
+        unset[ray.path] = '';
         break;
       case 'arrPush':
         object[property].push(ray.value);
