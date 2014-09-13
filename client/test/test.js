@@ -30,6 +30,11 @@ FakeApi.prototype.arrPush = function(path, value) {
     this.blob.arrPush(path, value, true);
 };
 
+FakeApi.prototype.arrSplice = function(path, start, end) {
+    this.events.push(['arrSplice'], clone(path));
+    this.blob.arrSplice(path, start, end, true);
+};
+
 (function() {
     var b = new Blob();
     b.api = new FakeApi(b);

@@ -111,6 +111,21 @@ Blob.prototype.arrPush = function(path, value, force) {
     this._triggerUpdate('arrPush', path, value);
 };
 
+Blob.prototype.arrSplice = function(path, start, end, force) {
+    path = normalizePath(path);
+    if (force) {
+        var p = this.findParent(path);
+        var arr = p.parent[p.last];
+        arr.splice(start, end);
+    }
+
+    var value = { start: start, end: end };
+    if (this.api && !force) {
+        this.api.arrSplice(path, value);
+    }
+    this._triggerUpdate('arrSplice', path, value);
+};
+
 Blob.prototype.mirror = function(path) {
     var obj;
     if (!path) {
@@ -181,6 +196,10 @@ ArrayMirror.prototype.__track = ObjectMirror.prototype.__track;
 
 ArrayMirror.prototype.push = function(value) {
     this.__blob.arrPush(this.__path, value);
+};
+
+ArrayMirror.prototype.splice = function(start, end) {
+    this.__blob.arrSplice(this.__path, start, end);
 };
 
 module.exports = {
