@@ -3,84 +3,103 @@ var Blob = blob_lib.Blob;
 
 function ws_blob(server, ready){
     var socket = io.connect(server);
+
+    var oldemit = socket.emit;
+    socket.emit = function(a) {
+        console.log("sending message to server: ", a);
+        oldemit(a);
+    };
+
     var blob = new Blob();
+    var api = new Api(blob, socket);
+    blob.api = api;
     socket.on('load', function(data) {
         blob.store = data;
         ready(blob);
     });
     socket.on('update', function(data) {
-        var kind = data.kind;
-        var path = data.path;
-        var value = data.value;
-        switch (data.kind) {
-            case 'udpate': {
-                blob.update(path, value, true);
-                break;
-            }
-            case 'create': {
-                blob.create(path, value, true);
-                break;
-            }
-            case 'delete': {
-                blob.delete(path, true);
-                break;
-            }
-            case 'arrPush': {
-                blob.arrPush(path, value, true);
-                break;
-            }
-            case 'arrSplice': {
-                blob.arrSplice(path, value, true);
-                break;
-            }
-            default: {
-                console.log("unknown data kind: ", kind);
-            }
-        }
+        console.log("got message from server: ", data);
+        api.onRecieve(data);
     });
+}
 
-    blob.api = {
-        'create': function(p, v) {
-            socket.emit('update', {
-                kind: 'create',
-                path: p,
-                value: v
-            });
-        },
-        'update': function(p, v) {
-            socket.emit('update', {
-                kind: 'update',
-                path: p,
-                value: v
-            });
-        },
-        'delete': function(p, v) {
-            socket.emit('update', {
-                kind: 'delete',
-                path: p,
-                value: v
-            });
-        },
-        'arrPush': function(p, v) {
-            socket.emit('update', {
-                kind: 'arrPush',
-                path: p,
-                value: v
-            });
-        },
-        'arrSplice': function(p, v) {
-            socket.emit('update', {
-                kind: 'arrSplice',
-                path: p,
-                value: v
-            });
+/// [outgoing] must contain a function called `emit`
+/// that takes a json value.
+function Api(blob, outgoing) {
+    this.blob = blob;
+    this.outgoing = outgoing;
+}
+
+Api.prototype.onRecieve = function(data) {
+    var kind = data.kind;
+    var path = data.path;
+    var value = data.value;
+    switch (kind) {
+        case 'update': {
+            blob.update(path, value, true);
+            break;
         }
-    };
-}
+        case 'create': {
+            blob.create(path, value, true);
+            break;
+        }
+        case 'delete': {
+            blob.delete(path, true);
+            break;
+        }
+        case 'arrPush': {
+            blob.arrPush(path, value, true);
+            break;
+        }
+        case 'arrSplice': {
+            blob.arrSplice(path, value, true);
+            break;
+        }
+        default: {
+            console.log("unknown data kind: ", kind);
+        }
+    }
+};
 
-function Api() {
+Api.prototype.create = function(path, value) {
+    this.outgoing.emit({
+        kind: 'create',
+        path: path,
+        value: value
+    });
+};
 
-}
+Api.prototype.update = function(path, value) {
+    this.outgoing.emit({
+        kind: 'update',
+        path: path,
+        value: value
+    });
+};
+
+Api.prototype.delete = function(path, value) {
+    this.outgoing.emit({
+        kind: 'delete',
+        path: path,
+    });
+};
+
+Api.prototype.arrPush = function(path, value) {
+    this.outgoing.emit({
+        kind: 'arrPush',
+        path: path,
+        value: value
+    });
+};
+
+Api.prototype.arrSplice = function(path, start, end) {
+    this.outgoing.emit({
+        kind: 'arrSplice',
+        path: path,
+        value: {start: start, end: end}
+    });
+};
+
 
 
 module.exports = {
