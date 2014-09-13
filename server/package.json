@@ -1,0 +1,16 @@
+{
+  "name": "grb-server",
+  "version": "1.0.0",
+  "description": "Globally Responsive Blob--transparently distributed JavaScript objects (server package)",
+  "main": "grb.js",
+  "authors": [
+    "Meyer Kizner <meyer@pre-alpha.com>",
+    "Ty Overby <ty@pre-alpha.com>"
+  ],
+  "dependencies": {
+    "q": "1.*",
+    "socket.io": "1.*",
+    "mongodb": "1.*"
+  },
+  "license": "MIT"
+}

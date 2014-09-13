@@ -1,9 +1,9 @@
 /* jshint node: true */
 'use strict';
 
+var Q = require('q');
 var socketio = require('socket.io');
 var MongoClient = require('mongodb').MongoClient;
-var Q = require('q');
 
 var IN_MEMORY = {
   connect: function () {
