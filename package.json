@@ -1,0 +1,11 @@
+{
+  "name": "gamma-ray-burst",
+  "version": "1.0.0",
+  "description": "A globally distributed javascript object",
+  "main": "index.js",
+  "authors": [
+      "Ty Overby <ty@pre-alpha.com>",
+      "Meyer Kizner <meyer@pre-alpha.com>"
+  ],
+  "license": "MIT"
+}
