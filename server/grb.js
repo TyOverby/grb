@@ -87,7 +87,8 @@ var serve = function (connection, strategy, namespace, name) {
 exports.serve = serve;
 
 var processBurst = function (connection, object, burst) {
-  var updates = {};
+  var set = {};
+  var unset = {};
   for (var i = 0; i < burst.length; i++) {
     var ray = burst[i];
     var split = ray.path.split('.');
@@ -99,12 +100,13 @@ var processBurst = function (connection, object, burst) {
       case 'create':
       case 'update':
         object[property] = ray.value;
-        updates[ray.path] = ray.value;
+        set[ray.path] = ray.value;
         break;
       case 'delete':
         delete object[property];
+        unset[ray.path] = "";
         break;
     }
   }
-  return updates;
+  return { $set: set, $unset: unset };
 };
