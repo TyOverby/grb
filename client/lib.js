@@ -84,7 +84,7 @@ Blob.prototype.create = function(path, value, force, hide) {
     if (this.api && !hide && !force) {
         this.api.create(path, value);
     }
-    if (!hide ) {
+    if (!hide) {
         this._triggerUpdate('create', path, value);
     }
     return value;

@@ -9,7 +9,8 @@
   ],
   "dependencies": {
       "lodash": "2.4.1",
-      "assert": "1.1.2"
+      "assert": "1.1.2",
+      "browserify": "5.11.2"
   },
   "license": "MIT"
 }
