@@ -1,14 +1,55 @@
 var _ = require("lodash");
 
 function Blob() {
+    this.pointsToStore = {};
     this.store = {};
     this.view = {};
     this.api = null;
     this.mirrors = {};
     this.keywords = [];
+    this.listeners = {
+        'update': {},
+        'create': {},
+        'delete': {},
+        'all':    {},
+    };
+    this.listenid = 0;
+
+    this.pointsToStore.store = this.store;
 }
 
+function normalizePath(path) {
+    return path.split(".")
+               .filter(function(c) {return c.length > 0;})
+               .join(".");
+}
+
+Blob.prototype.on = function(lkind, callback) {
+    this.listenid += 1;
+    var id = this.listenid;
+    this.listeners[lkind][id] = callback;
+    var that = this;
+    return {
+        cancel: function() {
+            delete that.listeners[lkind][id];
+        }
+    };
+};
+
+Blob.prototype._triggerUpdate = function(kind, path, data) {
+    function runAll(table) {
+        _.forOwn(table, function(v) {
+            v(kind, path, data);
+        });
+    }
+    runAll(this.listeners[kind]);
+    runAll(this.listeners.all);
+};
+
 Blob.prototype.findParent = function(path, creating, removing) {
+    if (path === "") {
+        return {'parent': this.pointsToStore, last: 'store'};
+    }
     var paths = path.split(".");
     var target = this.store;
     while (paths.length !== 1) {
@@ -28,47 +69,83 @@ Blob.prototype.findParent = function(path, creating, removing) {
     return {'parent': target, 'last': paths[0]};
 };
 
-Blob.prototype.create = function(path, value, hide) {
-    var p = this.findParent(path, true);
-    p.parent[p.last] = value;
+Blob.prototype.create = function(path, value, force, hide) {
+    path = normalizePath(path);
+    if (force) {
+        var p = this.findParent(path, true);
+        p.parent[p.last] = value;
 
-    var parentMirror = this.mirrors[p.parent];
-    if (parentMirror !== undefined) {
-        parentMirror.track(p.last);
+        var parentMirror = this.mirrors[p.parent];
+        if (parentMirror !== undefined) {
+            parentMirror.track(p.last);
+        }
     }
 
-    if (this.api && !hide) {
+    if (this.api && !hide && !force) {
         this.api.create(path, value);
+    }
+    if (!hide ) {
+        this._triggerUpdate('create', path, value);
     }
     return value;
 };
 
 Blob.prototype.read = function(path) {
+    path = normalizePath(path);
     var p = this.findParent(path);
     return p.parent[p.last];
 };
 
-Blob.prototype.update = function(path, value) {
-    this.create(path, value, true);
-    if (this.api) {
+Blob.prototype.update = function(path, value, force) {
+    path = normalizePath(path);
+    this.create(path, value, force, true);
+    if (this.api && !force) {
         this.api.update(path, value);
     }
+    this._triggerUpdate('update', path, value);
     return value;
 };
 
-Blob.prototype.delete = function(path) {
-    var p = this.findParent(path, false, true);
-    if (p.parent !== null) {
-        delete p.parent[p.last];
+Blob.prototype.delete = function(path, force) {
+    path = normalizePath(path);
+
+    if (force) {
+        var p = this.findParent(path, false, true);
+        if (p.parent !== null) {
+            delete p.parent[p.last];
+        }
     }
-    delete this.mirrors[path];
-    if (this.api) {
+
+    if (this.api && !force) {
         this.api.delete(path);
     }
+    this._triggerUpdate('delete', path);
+};
+
+Blob.prototype.arrPush = function(path, value, force) {
+    path = normalizePath(path);
+    if (force) {
+        var p = this.findParent(path);
+        var arr = p.parent[p.last];
+        arr.push(value);
+    }
+
+    if (this.api && !force) {
+        this.api.arrPush(path, value);
+    }
+    this._triggerUpdate('arrPush', path, value);
 };
 
 Blob.prototype.mirror = function(path) {
-    var obj = this.read(path);
+    var obj;
+    if (!path) {
+        path = "";
+        obj = this.store;
+    } else {
+        path = normalizePath(path);
+        obj = this.read(path);
+    }
+
     if (_.isObject(obj)) {
         if (this.mirrors[path] === undefined) {
             this.mirrors[path] = new ObjectMirror(this, path);
@@ -93,12 +170,12 @@ function ObjectMirror(blob, path) {
 
     var that = this;
     _.forOwn(this.__focus, function(_, k){
-        that.track(k);
+        that.__track(k);
     });
-    _.forOwn(this.__blob.keywords, this.track.bind(that));
+    _.forOwn(this.__blob.keywords, this.__track.bind(this));
 }
 
-ObjectMirror.prototype.track = function(key) {
+ObjectMirror.prototype.__track = function(key) {
     var that = this;
     Object.defineProperty(this, key, {
         get: function() {
@@ -115,6 +192,16 @@ ObjectMirror.prototype.track = function(key) {
         configurable : true
 
     });
+};
+
+//ObjectMirror.prototype.__set()
+
+function ArrayMirror(blob, path) {
+    ObjectMirror.call(this, blob, path);
+}
+
+ArrayMirror.prototype.push = function(value) {
+
 };
 
 module.exports = {

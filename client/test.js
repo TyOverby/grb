@@ -2,8 +2,9 @@ var assert = require('assert');
 var lib = require('./lib');
 var Blob = lib.Blob;
 
-function FakeApi() {
+function FakeApi(blob) {
     this.events = [];
+    this.blob = blob;
 }
 
 function clone(x){
@@ -12,18 +13,28 @@ function clone(x){
 
 FakeApi.prototype.create = function(path, value) {
     this.events.push(['create', path, clone(value)]);
+    this.blob.create(path, value, true);
 };
 
 FakeApi.prototype.update = function(path, value) {
     this.events.push(['update', path, clone(value)]);
+    this.blob.update(path, value, true);
 };
 
 FakeApi.prototype.delete = function(path, value) {
     this.events.push(['delete', clone(path)]);
+    this.blob.delete(path, true);
 };
+/*
+FakeApi.prototype.arrPush = function(path, value) {
+    this.events.push(['arrPush'], clone(path));
+    this.blob.create(path, value, true);
+}
+*/
 
 (function() {
     var b = new Blob();
+    b.api = new FakeApi(b);
     b.create("foo", 5);
     assert(b.store.foo === 5);
     assert(b.read("foo") === 5);
@@ -34,6 +45,7 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function() {
     var b = new Blob();
+    b.api = new FakeApi(b);
     b.create("foo", 5);
     assert(b.store.foo === 5);
 
@@ -43,18 +55,7 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function() {
     var b = new Blob();
-    b.create("foo", 5);
-    assert(b.store.foo === 5);
-
-    b.update("foo", 10);
-    assert(b.store.foo === 10);
-
-    b.delete("foo");
-    assert(b.store.foo === undefined);
-})();
-
-(function() {
-    var b = new Blob();
+    b.api = new FakeApi(b);
     b.create("foo", 5);
     assert(b.store.foo === 5);
 
@@ -67,7 +68,20 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function() {
     var b = new Blob();
-    b.api = new FakeApi();
+    b.api = new FakeApi(b);
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
+
+    b.update("foo", 10);
+    assert(b.store.foo === 10);
+
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+})();
+
+(function() {
+    var b = new Blob();
+    b.api = new FakeApi(b);
     b.create("foo", 5);
     assert(b.store.foo === 5);
 
@@ -87,7 +101,7 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function() {
     var b = new Blob();
-    b.api = new FakeApi();
+    b.api = new FakeApi(b);
     b.create("foo", {x: 4, y: 5});
     assert(b.store.foo.x === 4);
     assert(b.store.foo.y === 5);
@@ -117,7 +131,7 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function() {
     var b = new Blob();
-    b.api = new FakeApi();
+    b.api = new FakeApi(b);
     b.create("pos", {x: 4, y: 5});
 
     var bm = b.mirror("pos");
@@ -137,14 +151,17 @@ FakeApi.prototype.delete = function(path, value) {
 
 (function(){
     var b = new Blob();
-    b.api = new FakeApi();
+    b.api = new FakeApi(b);
     b.keywords = ["z", "pos"];
 
-    b.create("pos", {x: 4, y: 5});
-    bm = b.mirror("pos");
-    bm.z = 20;
+    bm = b.mirror("");
+    bm.pos = { x: 4, y: 5 };
+    bm.pos.z = 20;
 
-    assert(bm.z === 20);
+    assert(bm.pos.x === 4);
+    assert(b.store.pos.x === 4);
+
+    assert(bm.pos.z === 20);
     assert(b.store.pos.z === 20);
 
     assert.deepEqual(
@@ -153,4 +170,15 @@ FakeApi.prototype.delete = function(path, value) {
             ['create', 'pos', {x: 4, y: 5}],
             ['create', 'pos.z', 20]
         ]);
+})();
+
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi(b);
+    var newpath;
+    b.on('create', function(kind, path, value){
+        newpath = path;
+    });
+    b.create("foo", 5);
+    assert(newpath == "foo");
 })();
