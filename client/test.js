@@ -25,12 +25,11 @@ FakeApi.prototype.delete = function(path, value) {
     this.events.push(['delete', clone(path)]);
     this.blob.delete(path, true);
 };
-/*
+
 FakeApi.prototype.arrPush = function(path, value) {
     this.events.push(['arrPush'], clone(path));
-    this.blob.create(path, value, true);
-}
-*/
+    this.blob.arrPush(path, value, true);
+};
 
 (function() {
     var b = new Blob();
@@ -181,4 +180,23 @@ FakeApi.prototype.arrPush = function(path, value) {
     });
     b.create("foo", 5);
     assert(newpath == "foo");
+})();
+
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi(b);
+    b.create("foo", []);
+    b.arrPush("foo", 2);
+
+    assert(b.store.foo[0] === 2);
+})();
+
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi(b);
+    b.create("foo", []);
+    var m = b.mirror("foo");
+    m.push(2);
+
+    assert(b.store.foo[0] === 2);
 })();

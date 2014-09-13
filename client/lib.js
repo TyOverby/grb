@@ -20,7 +20,8 @@ function Blob() {
 
 function normalizePath(path) {
     return path.split(".")
-               .filter(function(c) {return c.length > 0;})
+               .map(function(c) { return c.trim(); })
+               .filter(function(c) { return c.length > 0; })
                .join(".");
 }
 
@@ -146,13 +147,16 @@ Blob.prototype.mirror = function(path) {
         obj = this.read(path);
     }
 
-    if (_.isObject(obj)) {
+    if (_.isArray(obj)) {
+        if (this.mirrors[path] === undefined) {
+            this.mirrors[path] = new ArrayMirror(this, path);
+        }
+        return this.mirrors[path];
+    } else if (_.isObject(obj)) {
         if (this.mirrors[path] === undefined) {
             this.mirrors[path] = new ObjectMirror(this, path);
         }
         return this.mirrors[path];
-    } else if (_.isArray(obj)) {
-        // TODO
     } else {
         return obj;
     }
@@ -190,7 +194,6 @@ ObjectMirror.prototype.__track = function(key) {
         },
         enumerable : true,
         configurable : true
-
     });
 };
 
@@ -200,8 +203,10 @@ function ArrayMirror(blob, path) {
     ObjectMirror.call(this, blob, path);
 }
 
-ArrayMirror.prototype.push = function(value) {
+ArrayMirror.prototype.__track = ObjectMirror.prototype.__track;
 
+ArrayMirror.prototype.push = function(value) {
+    this.__blob.arrPush(this.__path, value);
 };
 
 module.exports = {
