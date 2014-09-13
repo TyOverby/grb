@@ -1,7 +1,7 @@
 var _ = require("lodash");
+var util = require("../shared/util");
 
 function Blob() {
-    this.pointsToStore = {};
     this.store = {};
     this.view = {};
     this.api = null;
@@ -14,16 +14,9 @@ function Blob() {
         'all':    {},
     };
     this.listenid = 0;
-
-    this.pointsToStore.store = this.store;
 }
 
-function normalizePath(path) {
-    return path.split(".")
-               .map(function(c) { return c.trim(); })
-               .filter(function(c) { return c.length > 0; })
-               .join(".");
-}
+var normalizePath = util.normalizePath;
 
 Blob.prototype.on = function(lkind, callback) {
     this.listenid += 1;
@@ -48,26 +41,7 @@ Blob.prototype._triggerUpdate = function(kind, path, data) {
 };
 
 Blob.prototype.findParent = function(path, creating, removing) {
-    if (path === "") {
-        return {'parent': this.pointsToStore, last: 'store'};
-    }
-    var paths = path.split(".");
-    var target = this.store;
-    while (paths.length !== 1) {
-        var next = paths.shift();
-        if (target[next] === undefined) {
-            if (creating) {
-                target[next] = {};
-            } else if (removing) {
-                target = null;
-                break;
-            } else {
-                return null;
-            }
-        }
-        target = target[next];
-    }
-    return {'parent': target, 'last': paths[0]};
+    return util.traverse(this.store, path, creating, removing);
 };
 
 Blob.prototype.create = function(path, value, force, hide) {
