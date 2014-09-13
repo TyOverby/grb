@@ -37,28 +37,28 @@ function ws_blob(server, ready){
 
     blob.api = {
         'create': function(p, v) {
-            socket.write({
+            socket.emit('update', {
                 kind: 'create',
                 path: p,
                 value: v
             });
         },
         'update': function(p, v) {
-            socket.write({
+            socket.emit('update', {
                 kind: 'update',
                 path: p,
                 value: v
             });
         },
         'delete': function(p, v) {
-            socket.write({
+            socket.emit('update', {
                 kind: 'delete',
                 path: p,
                 value: v
             });
         },
         'arrPush': function(p, v) {
-            socket.write({
+            socket.emit('update', {
                 kind: 'arrPush',
                 path: p,
                 value: v

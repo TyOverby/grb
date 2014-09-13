@@ -75,9 +75,10 @@ var serve = function (connection, strategy, namespace, name) {
   promise.then(function (connection) {
     connection.load(name).then(function (object) {
       io.on('connection', function (socket) {
-        socket.on(namespace + '.' + name, function (burst) {
+        socket.emit('load', object);
+        socket.on('update', function (burst) {
           var updates = processBurst(connection, object, burst);
-          io.emit(namespace + '.' + name, burst);
+          socket.emit('update', burst);
           connection.update(name, updates);
         });
       });
@@ -89,6 +90,7 @@ exports.serve = serve;
 var processBurst = function (connection, object, burst) {
   var set = {};
   var unset = {};
+  var push = {};
   for (var i = 0; i < burst.length; i++) {
     var ray = burst[i];
     var split = ray.path.split('.');
@@ -106,7 +108,18 @@ var processBurst = function (connection, object, burst) {
         delete object[property];
         unset[ray.path] = "";
         break;
+      case 'arrPush':
+        object[property].push(ray.value);
+        if (!push[ray.path]) {
+          push[ray.path] = [];
+        }
+        push[ray.path].push(ray.value);
     }
   }
-  return { $set: set, $unset: unset };
+
+  var updates = { $set: set, $unset: unset };
+  for (var path in push) {
+    updates.$push.path = { $each: push[path] };
+  }
+  return updates;
 };
