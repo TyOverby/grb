@@ -9,7 +9,7 @@
   ],
   "scripts": {
       "test": "node ./test/test.js",
-      "build": "browserify -r ./api.js:grb-client > bundle.js"
+      "postinstall": "browserify -r ./api.js:grb-client > grb.js"
   },
   "dependencies": {
     "lodash": "2.4.1"

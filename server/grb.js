@@ -10,10 +10,10 @@ var IN_MEMORY = {
     return Q.fcall(function () {
       return {
         load: function () {
-          return Q.fcall(function () {});
+          return Q.fcall(function () { return {}; });
         },
         update: function () {
-          return Q.fcall(function () {});
+          return Q.fcall(function () { return true; });
         }
       };
     });
@@ -79,7 +79,9 @@ var serve = function (connection, strategy, namespace, name) {
         socket.on('update', function (burst) {
           var updates = processBurst(connection, object, burst);
           socket.emit('update', burst);
-          connection.update(name, updates);
+          connection.update(name, updates).then(function () {
+            console.log(object);
+          });
         });
       });
     });
