@@ -1,5 +1,6 @@
 var assert = require('assert');
 var lib = require('../lib');
+var util = require('../../shared/util');
 var Blob = lib.Blob;
 
 function FakeApi(blob) {
@@ -7,9 +8,7 @@ function FakeApi(blob) {
     this.blob = blob;
 }
 
-function clone(x){
-    return JSON.parse(JSON.stringify(x));
-}
+var clone = util.clone;
 
 FakeApi.prototype.create = function(path, value) {
     this.events.push(['create', path, clone(value)]);

@@ -67,6 +67,11 @@ function ws_blob(server, ready){
     };
 }
 
+function Api() {
+
+}
+
+
 module.exports = {
     ws_blob: ws_blob
 };

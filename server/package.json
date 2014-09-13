@@ -7,10 +7,16 @@
     "Meyer Kizner <meyer@pre-alpha.com>",
     "Ty Overby <ty@pre-alpha.com>"
   ],
+  "scripts": {
+      "test": "node ./test/test.js"
+  },
   "dependencies": {
     "q": "1.*",
     "socket.io": "1.*",
     "mongodb": "1.*"
+  },
+  "devDependencies": {
+      "assert": "1.1.2"
   },
   "license": "MIT"
 }

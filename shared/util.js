@@ -19,7 +19,7 @@ function traverse(object, path, creating, removing) {
                 target[next] = {};
             } else if (removing) {
                 target = null;
-                break;
+                return null;
             } else {
                 return null;
             }
@@ -29,7 +29,14 @@ function traverse(object, path, creating, removing) {
     return {'parent': target, 'last': paths[0]};
 }
 
+function clone(x){
+    return JSON.parse(JSON.stringify(x));
+}
+
 module.exports = {
     normalizePath: normalizePath,
-    traverse: traverse
+    traverse: traverse,
+    clone: clone
 };
+
+
