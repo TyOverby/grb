@@ -17,7 +17,7 @@ function ws_blob(server, ready){
         blob.store = data;
         ready(blob);
     });
-    socket.on('update', function(data) {
+    socket.on('delta', function(data) {
         console.log("got message from server: ", data);
         api.onRecieve(data);
     });
@@ -62,7 +62,7 @@ Api.prototype.onRecieve = function(data) {
 };
 
 Api.prototype.create = function(path, value) {
-    this.outgoing.emit({
+    this.outgoing.emit('delta', {
         kind: 'create',
         path: path,
         value: value
@@ -70,7 +70,7 @@ Api.prototype.create = function(path, value) {
 };
 
 Api.prototype.update = function(path, value) {
-    this.outgoing.emit({
+    this.outgoing.emit('delta', {
         kind: 'update',
         path: path,
         value: value
@@ -78,14 +78,14 @@ Api.prototype.update = function(path, value) {
 };
 
 Api.prototype.delete = function(path, value) {
-    this.outgoing.emit({
+    this.outgoing.emit('delta', {
         kind: 'delete',
         path: path,
     });
 };
 
 Api.prototype.arrPush = function(path, value) {
-    this.outgoing.emit({
+    this.outgoing.emit('delta', {
         kind: 'arrPush',
         path: path,
         value: value
@@ -93,7 +93,7 @@ Api.prototype.arrPush = function(path, value) {
 };
 
 Api.prototype.arrSplice = function(path, start, end) {
-    this.outgoing.emit({
+    this.outgoing.emit('delta', {
         kind: 'arrSplice',
         path: path,
         value: {start: start, end: end}
