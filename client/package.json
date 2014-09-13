@@ -1,7 +1,7 @@
 {
-  "name": "grb",
+  "name": "grb-client",
   "version": "1.0.0",
-  "description": "Globally Responsive Blob--transparently distributed JavaScript objects",
+  "description": "Globally Responsive Blob--transparently distributed JavaScript objects (client package)",
   "main": "api.js",
   "authors": [
     "Ty Overby <ty@pre-alpha.com>",
@@ -12,6 +12,7 @@
       "postinstall": "browserify -r ./api.js:grb-client > grb.js"
   },
   "dependencies": {
+    "grb-shared": "1.0.0",
     "lodash": "2.4.1"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 var _ = require("lodash");
-var util = require("../shared/util");
+var util = require("grb-shared");
 
 function Blob() {
     this.store = {};

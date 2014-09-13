@@ -1,4 +1,4 @@
-var util = require('../shared/util');
+var util = require('grb-shared');
 
 function Room(peer, data) {
     this.peer = peer;
