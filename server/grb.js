@@ -12,7 +12,7 @@ var IN_MEMORY = {
         load: function () {
           return Q.fcall(function () {});
         },
-        update: function() {
+        update: function () {
           return Q.fcall(function () {});
         }
       };
