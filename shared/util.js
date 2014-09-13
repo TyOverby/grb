@@ -29,7 +29,7 @@ function traverse(object, path, creating, removing) {
     return {'parent': target, 'last': paths[0]};
 }
 
-function clone(x){
+function clone(x) {
     return JSON.parse(JSON.stringify(x));
 }
 
@@ -38,5 +38,3 @@ module.exports = {
     traverse: traverse,
     clone: clone
 };
-
-
