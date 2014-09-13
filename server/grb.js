@@ -12,7 +12,7 @@ var IN_MEMORY = {
         load: function () {
           return Q.fcall(function () {});
         },
-        save: function() {
+        update: function() {
           return Q.fcall(function () {});
         }
       };
@@ -42,9 +42,9 @@ var MONGODB = {
             return deferred.promise;
           },
 
-          store: function (name, object) {
+          update: function (name, updates) {
             var deferred = Q.defer();
-            collection.save({ key: name, value: object }, function (err, result) {
+            collection.update({ key: name }, updates, { upsert: true }, function (err, result) {
               if (err) {
                 deferred.reject(err);
               } else {
@@ -76,6 +76,7 @@ var serve = function (connection, strategy, namespace, name) {
     connection.load(name).then(function (object) {
       io.on('connection', function (socket) {
         socket.on(namespace + '.' + name, function (burst) {
+          var updates = {};
           for (var i = 0; i < burst.length; i++) {
             var ray = burst[i];
             var split = ray.path.split('.');
@@ -87,6 +88,7 @@ var serve = function (connection, strategy, namespace, name) {
               case 'create':
               case 'update':
                 object[property] = ray.value;
+                updates[ray.path] = ray.value;
                 break;
               case 'delete':
                 delete object[property];
@@ -94,7 +96,7 @@ var serve = function (connection, strategy, namespace, name) {
             }
           }
           io.emit(namespace + '.' + name, burst);
-          connection.save(name, object);
+          connection.update(name, updates);
         });
       });
     });
