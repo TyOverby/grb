@@ -7,9 +7,12 @@
     "Ty Overby <ty@pre-alpha.com>",
     "Meyer Kizner <meyer@pre-alpha.com>"
   ],
+  "scripts": {
+      "test": "node ./test/test.js",
+      "browserify": "browserify api.js > bundle.js"
+  },
   "dependencies": {
-    "lodash": "2.4.1",
-    "browserify": "5.11.2"
+    "lodash": "2.4.1"
   },
   "devDependencies": {
     "assert": "1.1.2"
