@@ -19,7 +19,7 @@ var IN_MEMORY = {
     });
   }
 };
-exports.IN_MEMORY = IN_MEMORY;
+exports.IN_MEMORY = 0;
 
 var MONGODB = {
   connect: function (namespace) {
@@ -59,11 +59,20 @@ var MONGODB = {
     return deferred.promise;
   }
 };
-exports.MONGODB = MONGODB;
+exports.MONGODB = 1;
 
 var serve = function (connection, strategy, namespace, name) {
   var io = socketio.listen(connection);
-  strategy.promise(namespace).then(function (connection) {
+  var promise;
+  switch (strategy) {
+    case exports.IN_MEMORY:
+      promise = IN_MEMORY.connect(namespace);
+      break;
+    case exports.MONGODB:
+      promise = MONGODB.connect(namespace);
+      break;
+  }
+  promise.then(function (connection) {
     connection.load(name).then(function (object) {
       io.on('connection', function (socket) {
         socket.on(namespace + '.' + name, function (burst) {
