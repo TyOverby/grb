@@ -91,6 +91,7 @@ var processBurst = function (connection, object, burst) {
   var set = {};
   var unset = {};
   var push = {};
+  var pull = {};
   for (var i = 0; i < burst.length; i++) {
     var ray = burst[i];
     var split = ray.path.split('.');
@@ -114,10 +115,18 @@ var processBurst = function (connection, object, burst) {
           push[ray.path] = [];
         }
         push[ray.path].push(ray.value);
+        break;
+      case 'arrSplice':
+        object[property].splice(ray.value.start, ray.value.end);
+        for (var k = ray.value.start; k < ray.value.end; k++) {
+          unset[ray.path + '.' + k] = '';
+        }
+        pull[ray.path] = null;
+        break;
     }
   }
 
-  var updates = { $set: set, $unset: unset };
+  var updates = { $set: set, $unset: unset, $pull: pull };
   for (var path in push) {
     updates.$push.path = { $each: push[path] };
   }

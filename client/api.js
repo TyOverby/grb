@@ -29,6 +29,10 @@ function ws_blob(server, ready){
                 blob.arrPush(path, value, true);
                 break;
             }
+            case 'arrSplice': {
+                blob.arrSplice(path, value, true);
+                break;
+            }
             default: {
                 console.log("unknown data kind: ", kind);
             }
@@ -60,6 +64,13 @@ function ws_blob(server, ready){
         'arrPush': function(p, v) {
             socket.emit('update', {
                 kind: 'arrPush',
+                path: p,
+                value: v
+            });
+        },
+        'arrSplice': function(p, v) {
+            socket.emit('update', {
+                kind: 'arrSplice',
                 path: p,
                 value: v
             });
