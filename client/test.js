@@ -1,114 +1,156 @@
-var blib = require('./lib');
 var assert = require('assert');
-var makeProxy = blib.makeProxy;
-
-var Blob = blib.Blob;
+var lib = require('./lib');
+var Blob = lib.Blob;
 
 function FakeApi() {
     this.events = [];
 }
 
-FakeApi.prototype = {
-    'updateObject': function(b,o,k,v) {
-        this.events.push(["update", k, v]);
-    },
-    'addObject': function(b,o,k) {
-        this.events.push(["add", k]);
-    },
-    'deleteObject': function(b,o,k) {
-        this.events.push(["delete", k]);
-    }
+function clone(x){
+    return JSON.parse(JSON.stringify(x));
+}
+
+FakeApi.prototype.create = function(path, value) {
+    this.events.push(['create', path, clone(value)]);
 };
 
-(function testBasicBlob() {
-    var blob = new Blob();
-    blob.api = new FakeApi();
+FakeApi.prototype.update = function(path, value) {
+    this.events.push(['update', path, clone(value)]);
+};
 
-    var pos = {x: 4, y: 5};
-    blob.__set('pos', pos);
-    assert(pos.__proxy);
+FakeApi.prototype.delete = function(path, value) {
+    this.events.push(['delete', clone(path)]);
+};
 
-    assert(pos.x == 4);
-    assert(pos.y == 5);
+(function() {
+    var b = new Blob();
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
+    assert(b.read("foo") === 5);
 
-    pos.x = 10;
-    assert(pos.x == 10);
-    assert(blob.pos.x == 10);
+    b.create("bar.baz", 10);
+    assert(b.store.bar.baz === 10);
+})();
 
-    blob.pos.y = 20;
-    assert(pos.y == 20);
-    assert(blob.pos.y == 20);
+(function() {
+    var b = new Blob();
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
 
-    console.log(blob.api.events);
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+})();
+
+(function() {
+    var b = new Blob();
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
+
+    b.update("foo", 10);
+    assert(b.store.foo === 10);
+
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+})();
+
+(function() {
+    var b = new Blob();
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
+
+    b.update("foo", 10);
+    assert(b.store.foo === 10);
+
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+})();
+
+(function() {
+    var b = new Blob();
+    b.api = new FakeApi();
+    b.create("foo", 5);
+    assert(b.store.foo === 5);
+
+    b.update("foo", 10);
+    assert(b.store.foo === 10);
+
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+
     assert.deepEqual(
-        blob.api.events,
+        b.api.events,
+        [['create', 'foo', 5],
+        ['update', 'foo', 10],
+        ['delete', 'foo']]);
+})();
+
+
+(function() {
+    var b = new Blob();
+    b.api = new FakeApi();
+    b.create("foo", {x: 4, y: 5});
+    assert(b.store.foo.x === 4);
+    assert(b.store.foo.y === 5);
+
+    b.update("foo.x", 10);
+    assert(b.store.foo.x === 10);
+
+    b.update("foo.y", 10);
+    assert(b.store.foo.y === 10);
+
+    b.delete("foo.x");
+    assert(b.store.foo.x === undefined);
+
+    b.delete("foo");
+    assert(b.store.foo === undefined);
+
+    assert.deepEqual(
+        b.api.events,
         [
-            ['add', 'pos'],
-            ['add', 'x'],
-            ['update', 'x', 4],
-            ['add', 'y'],
-            ['update', 'y', 5],
-            ['update', 'x', 10],
-            ['update', 'y', 20],
+            ['create', 'foo', {x: 4, y: 5}],
+            ['update', 'foo.x', 10],
+            ['update', 'foo.y', 10],
+            ['delete', 'foo.x'],
+            ['delete', 'foo'],
         ]);
 })();
 
-(function testProxyGen1() {
-    var pos = {x: 4, y: 5};
+(function() {
+    var b = new Blob();
+    b.api = new FakeApi();
+    b.create("pos", {x: 4, y: 5});
 
-    makeProxy(null, null, pos);
-    console.log(pos);
-    assert(pos.x == 4);
-    assert(pos.y == 5);
+    var bm = b.mirror("pos");
+    assert(bm.x === 4);
+    assert(bm.y === 5);
+
+    bm.x = 20;
+    assert(bm.x == 20);
+
+    assert.deepEqual(
+        b.api.events,
+        [
+            ['create', 'pos', {x: 4, y: 5}],
+            ['update', 'pos.x', 20]
+        ]);
 })();
 
-(function testProxyGen2() {
-    var pos = {x: 4, y: 5};
-    makeProxy(null, null, pos);
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi();
+    b.keywords = ["z", "pos"];
 
-    pos.x = 20;
-    pos.y = 30;
+    b.create("pos", {x: 4, y: 5});
+    bm = b.mirror("pos");
+    bm.z = 20;
 
-    assert(pos.x == 20);
-    assert(pos.y == 30);
+    assert(bm.z === 20);
+    assert(b.store.pos.z === 20);
+
+    assert.deepEqual(
+        b.api.events,
+        [
+            ['create', 'pos', {x: 4, y: 5}],
+            ['create', 'pos.z', 20]
+        ]);
 })();
-
-(function testProxySet() {
-    var pos = {x: 4, y: 5};
-    makeProxy(null, null, pos);
-    assert(pos.__proxy);
-
-    pos.x = 20;
-    pos.y = 30;
-    pos.__set('z', 40);
-
-    assert(pos.x == 20);
-    assert(pos.y == 30);
-    assert(pos.z == 40);
-
-    pos.z = 50;
-    assert(pos.z == 50);
-})();
-
-
-(function testProxySetDeep() {
-    var pos = {x: 4, y: 5};
-    makeProxy(null, null, pos);
-    assert(pos.__proxy);
-
-    pos.x = 20;
-    pos.y = 30;
-    pos.__set('z', {r: 40, w: 50});
-
-    assert(pos.x == 20);
-    assert(pos.y == 30);
-    assert(pos.z.r == 40);
-    assert(pos.z.w == 50);
-
-    pos.z.r = 60;
-    pos.z.w = 70;
-
-    assert(pos.z.r == 60);
-    assert(pos.z.w == 70);
-})();
-
