@@ -7,7 +7,7 @@ function ws_blob(server, ready){
     var oldemit = socket.emit;
     socket.emit = function(channel, message) {
         console.log("sending to server on channel \"" + channel + "\": " + message);
-        oldemit(channel, message);
+        oldemit.call(socket, channel, message);
     };
 
     var blob = new Blob();
@@ -19,7 +19,7 @@ function ws_blob(server, ready){
     });
     socket.on('delta', function(data) {
         console.log("got message from server: ", data);
-        api.onRecieve(data);
+        api.onReceive(data);
     });
 }
 
@@ -30,29 +30,29 @@ function Api(blob, outgoing) {
     this.outgoing = outgoing;
 }
 
-Api.prototype.onRecieve = function(data) {
+Api.prototype.onReceive = function(data) {
     var kind = data.kind;
     var path = data.path;
     var value = data.value;
     switch (kind) {
         case 'update': {
-            blob.update(path, value, true);
+            this.blob.update(path, value, true);
             break;
         }
         case 'create': {
-            blob.create(path, value, true);
+            this.blob.create(path, value, true);
             break;
         }
         case 'delete': {
-            blob.delete(path, true);
+            this.blob.delete(path, true);
             break;
         }
         case 'arrPush': {
-            blob.arrPush(path, value, true);
+            this.blob.arrPush(path, value, true);
             break;
         }
         case 'arrSplice': {
-            blob.arrSplice(path, value, true);
+            this.blob.arrSplice(path, value, true);
             break;
         }
         default: {
