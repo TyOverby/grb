@@ -9,7 +9,7 @@
   ],
   "scripts": {
       "test": "node ./test/test.js",
-      "browserify": "browserify api.js > bundle.js"
+      "build": "browserify api.js > bundle.js"
   },
   "dependencies": {
     "lodash": "2.4.1"
