@@ -1,3 +1,3 @@
 #!/bin/bash
 
-browserify client/api.js > bundle.js
+browserify api.js > bundle.js
