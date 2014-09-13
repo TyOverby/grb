@@ -5,9 +5,9 @@ function ws_blob(server, ready){
     var socket = io.connect(server);
 
     var oldemit = socket.emit;
-    socket.emit = function(a) {
-        console.log("sending message to server: ", a);
-        oldemit(a);
+    socket.emit = function(channel, message) {
+        console.log("sending to server on channel \"" + channel + "\": " + message);
+        oldemit(channel, message);
     };
 
     var blob = new Blob();
