@@ -77,3 +77,7 @@ function ws_blob(server, ready){
         }
     };
 }
+
+module.exports = {
+    ws_blob: ws_blob
+};
