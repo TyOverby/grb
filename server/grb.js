@@ -76,25 +76,7 @@ var serve = function (connection, strategy, namespace, name) {
     connection.load(name).then(function (object) {
       io.on('connection', function (socket) {
         socket.on(namespace + '.' + name, function (burst) {
-          var updates = {};
-          for (var i = 0; i < burst.length; i++) {
-            var ray = burst[i];
-            var split = ray.path.split('.');
-            for (var j = 0; j < split.length - 1; j++) {
-              object = object[split[j]];
-            }
-            var property = split[split.length - 1];
-            switch (ray.kind) {
-              case 'create':
-              case 'update':
-                object[property] = ray.value;
-                updates[ray.path] = ray.value;
-                break;
-              case 'delete':
-                delete object[property];
-                break;
-            }
-          }
+          var updates = processBurst(connection, object, burst);
           io.emit(namespace + '.' + name, burst);
           connection.update(name, updates);
         });
@@ -103,3 +85,26 @@ var serve = function (connection, strategy, namespace, name) {
   });
 };
 exports.serve = serve;
+
+var processBurst = function (connection, object, burst) {
+  var updates = {};
+  for (var i = 0; i < burst.length; i++) {
+    var ray = burst[i];
+    var split = ray.path.split('.');
+    for (var j = 0; j < split.length - 1; j++) {
+      object = object[split[j]];
+    }
+    var property = split[split.length - 1];
+    switch (ray.kind) {
+      case 'create':
+      case 'update':
+        object[property] = ray.value;
+        updates[ray.path] = ray.value;
+        break;
+      case 'delete':
+        delete object[property];
+        break;
+    }
+  }
+  return updates;
+};
