@@ -1,8 +1,6 @@
 /* jshint node: true */
 'use strict';
 
-var Server = require('socket.io');
-
 var Instance = require('./Instance.js');
 
 var facets = {
@@ -11,8 +9,7 @@ var facets = {
   BroadcastFacet: require('./BroadcastFacet.js')
 };
 
-var serve = function (server, path, namespace, id, facets) {
-  var io = new Server(server);
+var serve = function (io, path, namespace, id, facets) {
   var instance = new Instance(namespace, id, facets);
   io.of(path).on('connection', function (socket) {
     instance._onConnection(socket);
