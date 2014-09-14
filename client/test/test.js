@@ -3,36 +3,21 @@ var lib = require('../lib');
 var util = require('../../shared/util');
 var Blob = lib.Blob;
 
+var clone = util.clone;
+
 function FakeApi(blob) {
     this.events = [];
     this.blob = blob;
 }
 
-var clone = util.clone;
 
-FakeApi.prototype.create = function(path, value) {
-    this.events.push(['create', path, clone(value)]);
-    this.blob.create(path, value, true);
-};
-
-FakeApi.prototype.update = function(path, value) {
-    this.events.push(['update', path, clone(value)]);
-    this.blob.update(path, value, true);
-};
-
-FakeApi.prototype.delete = function(path, value) {
-    this.events.push(['delete', clone(path)]);
-    this.blob.delete(path, true);
-};
-
-FakeApi.prototype.arrPush = function(path, value) {
-    this.events.push(['arrPush'], clone(path));
-    this.blob.arrPush(path, value, true);
-};
-
-FakeApi.prototype.arrSplice = function(path, start, end) {
-    this.events.push(['arrSplice'], clone(path));
-    this.blob.arrSplice(path, start, end, true);
+FakeApi.prototype.emit = function (data) {
+    if (data.value) {
+        this.events.push([data.kind, data.path, clone(data.value)]);
+    } else {
+        this.events.push([data.kind, data.path]);
+    }
+    this.blob.onRecieve(data);
 };
 
 (function() {
