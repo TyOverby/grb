@@ -189,3 +189,25 @@ FakeApi.prototype.emit = function (data) {
 
     assert(b.store.foo[0] === 2);
 })();
+
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi(b);
+    b.create("foo", {});
+    var m = b.mirror("foo");
+    m.__set("k", 20);
+
+    assert(b.store.foo.k === 20);
+})();
+
+(function(){
+    var b = new Blob().withKeywords('k', 'x');
+    b.api = new FakeApi(b);
+    b.create("foo", {});
+    var m = b.mirror("foo");
+    m.k = 20;
+    m.x = 50;
+
+    assert(b.store.foo.k === 20);
+    assert(b.store.foo.x === 50);
+})();

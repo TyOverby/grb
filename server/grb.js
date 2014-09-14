@@ -76,13 +76,10 @@ var serve = function (connection, strategy, namespace, name) {
     connection.load(name).then(function (object) {
       io.on('connection', function (socket) {
         socket.emit('load', object);
-        socket.on('delta', function (burst) {
-          console.log(burst);
-          var updates = processBurst(connection, object, burst);
-          socket.emit('delta', burst);
-          connection.update(name, updates).then(function () {
-            console.log(object);
-          });
+        socket.on('delta', function (ray) {
+          var updates = processRay(connection, object, ray);
+          socket.emit('delta', ray);
+          connection.update(name, updates);
         });
       });
     });
@@ -90,43 +87,42 @@ var serve = function (connection, strategy, namespace, name) {
 };
 exports.serve = serve;
 
-var processBurst = function (connection, object, burst) {
+var processRay = function (connection, object, ray) {
   var set = {};
   var unset = {};
   var push = {};
   var pull = {};
-  for (var i = 0; i < burst.length; i++) {
-    var ray = burst[i];
-    var split = ray.path.split('.');
-    for (var j = 0; j < split.length - 1; j++) {
-      object = object[split[j]];
-    }
-    var property = split[split.length - 1];
-    switch (ray.kind) {
-      case 'create':
-      case 'update':
-        object[property] = ray.value;
-        set[ray.path] = ray.value;
-        break;
-      case 'delete':
-        delete object[property];
-        unset[ray.path] = '';
-        break;
-      case 'arrPush':
-        object[property].push(ray.value);
-        if (!push[ray.path]) {
-          push[ray.path] = [];
-        }
-        push[ray.path].push(ray.value);
-        break;
-      case 'arrSplice':
-        object[property].splice(ray.value.start, ray.value.end);
-        for (var k = ray.value.start; k < ray.value.end; k++) {
-          unset[ray.path + '.' + k] = '';
-        }
-        pull[ray.path] = null;
-        break;
-    }
+
+  var split = ray.path.split('.');
+  for (var i = 0; i < split.length - 1; i++) {
+    object = object[split[i]];
+  }
+  var property = split[split.length - 1];
+
+  switch (ray.kind) {
+    case 'create':
+    case 'update':
+      object[property] = ray.value;
+      set[ray.path] = ray.value;
+      break;
+    case 'delete':
+      delete object[property];
+      unset[ray.path] = '';
+      break;
+    case 'arrPush':
+      object[property].push(ray.value);
+      if (!push[ray.path]) {
+        push[ray.path] = [];
+      }
+      push[ray.path].push(ray.value);
+      break;
+    case 'arrSplice':
+      object[property].splice(ray.value.start, ray.value.end);
+      for (var j = ray.value.start; j < ray.value.end; j++) {
+        unset[ray.path + '.' + j] = '';
+      }
+      pull[ray.path] = null;
+      break;
   }
 
   var updates = { $set: set, $unset: unset, $pull: pull };

@@ -18,6 +18,21 @@ function Blob() {
 
 var normalizePath = util.normalizePath;
 
+Blob.prototype.withKeywords = function() {
+    var arr = Array.prototype.slice.call(arguments, 0);
+    this.keywords = this.keywords.concat(arr);
+    return this;
+};
+
+Blob.prototype.addKeyword = function(kw, mirror) {
+    this.keywords.push(kw);
+    _.forOwn(this.mirrors, function(v) {
+        if (v != mirror) {
+            v.__track(kw);
+        }
+    });
+};
+
 Blob.prototype.onDelta = function(data) {
     var kind = data.kind;
     var path = data.path;
@@ -95,7 +110,7 @@ Blob.prototype.create = function(path, value, force, hide) {
             value: value
         });
     }
-    if (!hide) {
+    if (!hide && force) {
         this._triggerUpdate('create', path, value);
     }
     return value;
@@ -117,7 +132,9 @@ Blob.prototype.update = function(path, value, force) {
             value: value
         });
     }
-    this._triggerUpdate('update', path, value);
+    if (force) {
+        this._triggerUpdate('update', path, value);
+    }
     return value;
 };
 
@@ -137,7 +154,9 @@ Blob.prototype.delete = function(path, force) {
             path: path
         });
     }
-    this._triggerUpdate('delete', path);
+    if (force) {
+        this._triggerUpdate('delete', path);
+    }
 };
 
 Blob.prototype.arrPush = function(path, value, force) {
@@ -155,7 +174,9 @@ Blob.prototype.arrPush = function(path, value, force) {
             value: value
         });
     }
-    this._triggerUpdate('arrPush', path, value);
+    if (force) {
+        this._triggerUpdate('arrPush', path, value);
+    }
 };
 
 Blob.prototype.arrSplice = function(path, start, end, force) {
@@ -174,7 +195,9 @@ Blob.prototype.arrSplice = function(path, start, end, force) {
             value: {start: start, end: end}
         });
     }
-    this._triggerUpdate('arrSplice', path, value);
+    if (force) {
+        this._triggerUpdate('arrSplice', path, value);
+    }
 };
 
 Blob.prototype.mirror = function(path) {
@@ -219,8 +242,14 @@ function ObjectMirror(blob, path) {
     _.forOwn(this.__blob.keywords, this.__track.bind(this));
 }
 
+ObjectMirror.prototype.__set = function(key, value) {
+    this.__track(key);
+    this[key] = value;
+};
+
 ObjectMirror.prototype.__track = function(key) {
     var that = this;
+    this.__blob.addKeyword(key, this);
     Object.defineProperty(this, key, {
         get: function() {
             return that.__blob.mirror(that.__path + "." + key);

@@ -5,13 +5,6 @@ function Room(peer, data) {
     this.data = data || {};
 }
 
-Room.prototype.processBurst = function(burst) {
-    for (var k in burst) {
-        var ray = burst[k];
-        this.processRay(ray);
-    }
-};
-
 Room.prototype.processRay = function(ray) {
     var kind = ray.kind;
     var path = ray.path;
