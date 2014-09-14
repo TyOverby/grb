@@ -19,6 +19,13 @@ function Blob() {
 
 var normalizePath = util.normalizePath;
 
+Blob.prototype.setStore = function(obj) {
+    this.store = obj;
+    _.forOwn(obj, function(v, k){
+        this.addKeyword(k);
+    }.bind(this));
+};
+
 Blob.prototype.withKeywords = function() {
     var arr = Array.prototype.slice.call(arguments, 0);
     this.keywords = this.keywords.concat(arr);

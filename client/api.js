@@ -9,7 +9,7 @@ function ws_blob(server, ready){
     blob.api = api;
     socket.emit('load', {});
     socket.on('load', function(data) {
-        blob.store = data;
+        blob.setStore(data);
         ready(blob, blob.mirror());
     });
     socket.on('delta', function(data) {
