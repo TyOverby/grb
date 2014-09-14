@@ -8,19 +8,16 @@ function FakeClientApi(blob, server) {
     this.emit = function(x) {
         var cobj = util.clone(x);
         setTimeout(function() {
-            console.log("processing ray");
             this.serverApi.processRay(cobj);
         }.bind(this), 0);
     }.bind(this);
 }
 
 function FakeServerApi(client) {
-    console.log(client);
     this.client = client;
     this.emit = function(obj) {
         var cobj = util.clone(obj);
         setTimeout(function(){
-            console.log(this.client);
             this.client.onRecieve(cobj);
         }.bind(this), 0);
     }.bind(this);
