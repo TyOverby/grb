@@ -28,21 +28,25 @@ Instance.prototype._onLoad = function (socket) {
   }
 };
 
+/* TODO this function has some redundancy but I'm not sure how to fix it */
 Instance.prototype._onLoadHelper = function (socket, index) {
   var result = this.facets[index].onLoad(this, socket);
+  var deferred = Q.defer();
   if (result) {
     if (Q.isPromise(result)) {
       result.then(function (object) {
         if (object) {
           this.object = object;
+          socket.emit('load', this.object);
         } else if (index + 1 < this.facets.length) {
           this._onLoadHelper(socket, index + 1);
         }
       }.bind(this));
     } else {
       this.object = result;
+      socket.emit('load', this.object);
     }
-  } else {
+  } else if (index + 1 < this.facets.length) {
     this._onLoadHelper(socket, index + 1);
   }
 };

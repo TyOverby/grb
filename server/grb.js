@@ -16,9 +16,15 @@ var serve = function (server, path, namespace, id, facets) {
   var instance = new Instance(namespace, id, facets);
   io.of(path).on('connection', function (socket) {
     instance._onConnection(socket);
-    socket.on('disconnect', instance._onDisconnection.bind(instance));
-    socket.on('load', instance._onLoad.bind(instance));
-    socket.on('delta', instance._onDelta.bind(instance));
+    socket.on('disconnect', function () {
+      instance._onDisconnection(socket);
+    });
+    socket.on('load', function () {
+      instance._onLoad(socket);
+    });
+    socket.on('delta', function (delta) {
+      instance._onDelta(socket, delta);
+    });
   });
 };
 

@@ -7,6 +7,7 @@ function ws_blob(server, ready){
     var blob = new Blob();
     var api = new Api(blob, socket);
     blob.api = api;
+    socket.emit('load', {});
     socket.on('load', function(data) {
         blob.store = data;
         ready(blob);
