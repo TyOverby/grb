@@ -211,3 +211,25 @@ FakeApi.prototype.emit = function (data) {
     assert(b.store.foo.k === 20);
     assert(b.store.foo.x === 50);
 })();
+
+(function(){
+    var b = new Blob();
+    b.api = new FakeApi(b);
+    b.create("foo", []);
+    var m = b.mirror("foo");
+
+    var found;
+    b.on('arrPush', function(kind, path, value) {
+        found = value;
+    });
+
+    m.push(5);
+
+    assert(b.store.foo[0] === 5);
+    assert(found === 5);
+
+    m.push(6);
+
+    assert(b.store.foo[1] === 6);
+    assert(found === 6);
+})();

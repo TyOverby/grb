@@ -12,6 +12,7 @@ function Blob() {
         'create': {},
         'delete': {},
         'all':    {},
+        'arrPush':{},
     };
     this.listenid = 0;
 }
