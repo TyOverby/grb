@@ -3,12 +3,11 @@
 
 var Q = require('q');
 
-function Instance(server, namespace, id) {
-  this.server = server;
+function Instance(namespace, id, facets) {
   this.namespace = namespace;
   this.id = id;
+  this.facets = facets;
   this.object = {};
-  this.facets = [];
 }
 
 Instance.prototype._onConnection = function (socket) {
