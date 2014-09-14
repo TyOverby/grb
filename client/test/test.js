@@ -17,7 +17,7 @@ FakeApi.prototype.emit = function (data) {
     } else {
         this.events.push([data.kind, data.path]);
     }
-    this.blob.onRecieve(data);
+    this.blob.onDelta(data);
 };
 
 (function() {

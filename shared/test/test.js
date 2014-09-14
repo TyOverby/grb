@@ -1,12 +1,15 @@
+var assert = require('assert');
 var CSBridge = require('../bridge.js');
 
 (function(){
     var csb = new CSBridge();
-    var cblob = csb.blob;
+    var blob = csb.blob;
+    var server = csb.server;
 
-    cblob.create("foo", 5);
+    blob.create("foo", 5);
 
     setTimeout(function (){
-        //console.log(csb);
+        assert(blob.store.foo === 5);
+        assert(server.data.foo === 5);
     }, 50);
 })();
