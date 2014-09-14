@@ -24,6 +24,7 @@ function Api(blob, outgoing) {
 
 Api.prototype.emit = function(data) {
     this.outgoing.emit('delta', data);
+    console.log('sent delta to server', data);
 };
 
 Api.prototype.onDelta = function(data) {

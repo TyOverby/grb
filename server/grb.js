@@ -77,6 +77,7 @@ var serve = function (connection, strategy, namespace, name) {
       io.on('connection', function (socket) {
         socket.emit('load', object);
         socket.on('delta', function (burst) {
+          console.log(burst);
           var updates = processBurst(connection, object, burst);
           socket.emit('delta', burst);
           connection.update(name, updates).then(function () {
