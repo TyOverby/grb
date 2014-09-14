@@ -18,6 +18,38 @@ function Blob() {
 
 var normalizePath = util.normalizePath;
 
+Blob.prototype.onRecieve = function(data) {
+    var kind = data.kind;
+    var path = data.path;
+    var value = data.value;
+    switch (kind) {
+        case 'update': {
+            this.update(path, value, true);
+            break;
+        }
+        case 'create': {
+            this.create(path, value, true);
+            break;
+        }
+        case 'delete': {
+            this.delete(path, true);
+            break;
+        }
+        case 'arrPush': {
+            this.arrPush(path, value, true);
+            break;
+        }
+        case 'arrSplice': {
+            this.arrSplice(path, value, true);
+            break;
+        }
+        default: {
+            console.log("unknown data kind: ", kind);
+        }
+    }
+};
+
+
 Blob.prototype.on = function(lkind, callback) {
     this.listenid += 1;
     var id = this.listenid;
@@ -57,7 +89,11 @@ Blob.prototype.create = function(path, value, force, hide) {
     }
 
     if (this.api && !hide && !force) {
-        this.api.create(path, value);
+        this.api.emit({
+            kind: 'create',
+            path: path,
+            value: value
+        });
     }
     if (!hide) {
         this._triggerUpdate('create', path, value);
@@ -75,7 +111,11 @@ Blob.prototype.update = function(path, value, force) {
     path = normalizePath(path);
     this.create(path, value, force, true);
     if (this.api && !force) {
-        this.api.update(path, value);
+        this.api.emit({
+            kind: 'update',
+            path: path,
+            value: value
+        });
     }
     this._triggerUpdate('update', path, value);
     return value;
@@ -92,7 +132,10 @@ Blob.prototype.delete = function(path, force) {
     }
 
     if (this.api && !force) {
-        this.api.delete(path);
+        this.api.emit({
+            kind: 'delete',
+            path: path
+        });
     }
     this._triggerUpdate('delete', path);
 };
@@ -106,7 +149,11 @@ Blob.prototype.arrPush = function(path, value, force) {
     }
 
     if (this.api && !force) {
-        this.api.arrPush(path, value);
+        this.api.emit({
+            kind: 'arrPush',
+            path: path,
+            value: value
+        });
     }
     this._triggerUpdate('arrPush', path, value);
 };
@@ -121,7 +168,11 @@ Blob.prototype.arrSplice = function(path, start, end, force) {
 
     var value = { start: start, end: end };
     if (this.api && !force) {
-        this.api.arrSplice(path, value);
+        this.outgoing.emit({
+            kind: 'arrSplice',
+            path: path,
+            value: {start: start, end: end}
+        });
     }
     this._triggerUpdate('arrSplice', path, value);
 };
@@ -185,8 +236,6 @@ ObjectMirror.prototype.__track = function(key) {
         configurable : true
     });
 };
-
-//ObjectMirror.prototype.__set()
 
 function ArrayMirror(blob, path) {
     ObjectMirror.call(this, blob, path);

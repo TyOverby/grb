@@ -41,7 +41,11 @@ Room.prototype.create = function(path, value) {
     if (p === null) return;
     p.parent[p.last] = value;
     if (this.peer) {
-        this.peer.create(path, value);
+        this.peer.emit({
+            kind: 'create',
+            path: path,
+            value: value
+        });
     }
 };
 
@@ -50,7 +54,11 @@ Room.prototype.update = function(path, value) {
     if (p === null) return;
     p.parent[p.last] = value;
     if (this.peer) {
-        this.peer.update(path, value);
+        this.peer.emit({
+            kind: 'update',
+            path: path,
+            value: value
+        });
     }
 };
 
@@ -61,7 +69,10 @@ Room.prototype.delete = function(path, value) {
         delete p.parent[p.last];
     }
     if (this.peer) {
-        this.peer.delete(path, value);
+        this.peer.emit({
+            kind: 'delete',
+            path: path,
+        });
     }
 };
 
@@ -71,7 +82,11 @@ Room.prototype.arrPush = function(path, value) {
     var arr = p.parent[p.last];
     arr.push(value);
     if (this.peer) {
-        this.peer.arrPush(path, value);
+        this.peer.emit({
+            kind: 'arrPush',
+            path: path,
+            value: value
+        });
     }
 };
 
