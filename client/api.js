@@ -10,7 +10,7 @@ function ws_blob(server, ready){
     socket.emit('load', {});
     socket.on('load', function(data) {
         blob.store = data;
-        ready(blob);
+        ready(blob, blob.mirror());
     });
     socket.on('delta', function(data) {
         console.log("got message from server: ", data);
