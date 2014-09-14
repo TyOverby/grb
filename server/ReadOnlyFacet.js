@@ -1,7 +1,12 @@
 /* jshint node: true */
 'use strict';
 
-function ReadOnlyFacet() {
+function ReadOnlyFacet(whitelist) {
+  if (whitelist) {
+    this.whitelist = whitelist;
+  } else {
+    this.whitelist = [];
+  }
 }
 
 ReadOnlyFacet.prototype.onConnection = function (instance, socket) {
@@ -14,7 +19,7 @@ ReadOnlyFacet.prototype.onLoad = function (instance, socket) {
 };
 
 ReadOnlyFacet.prototype.onDelta = function (instance, socket, delta) {
-  return true;
+  return this.whitelist.indexOf(delta.kind) < 0;
 };
 
 module.exports = ReadOnlyFacet;
