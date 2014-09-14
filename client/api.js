@@ -13,7 +13,7 @@ function ws_blob(server, ready){
     });
     socket.on('update', function(data) {
         console.log("got message from server: ", data);
-        api.onRecieve(data);
+        api.onDelta(data);
     });
 }
 
@@ -26,8 +26,8 @@ Api.prototype.emit = function(data) {
     this.outgoing.emit('delta', data);
 };
 
-Api.prototype.onRecieve = function(data) {
-    this.blob.onRecieve(data);
+Api.prototype.onDelta = function(data) {
+    this.blob.onDelta(data);
 };
 
 module.exports = {

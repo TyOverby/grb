@@ -18,7 +18,7 @@ function FakeServerApi(client) {
     this.emit = function(obj) {
         var cobj = util.clone(obj);
         setTimeout(function(){
-            this.client.onRecieve(cobj);
+            this.client.onDelta(cobj);
         }.bind(this), 0);
     }.bind(this);
 }

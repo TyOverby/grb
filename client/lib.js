@@ -18,7 +18,7 @@ function Blob() {
 
 var normalizePath = util.normalizePath;
 
-Blob.prototype.onRecieve = function(data) {
+Blob.prototype.onDelta = function(data) {
     var kind = data.kind;
     var path = data.path;
     var value = data.value;
