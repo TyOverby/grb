@@ -6,7 +6,8 @@ var Instance = require('./Instance.js');
 var facets = {
   MemoryFacet: require('./MemoryFacet.js'),
   MongoFacet: require('./MongoFacet.js'),
-  BroadcastFacet: require('./BroadcastFacet.js')
+  BroadcastFacet: require('./BroadcastFacet.js'),
+  ReadOnlyFacet: require('./ReadOnlyFacet.js')
 };
 
 var serve = function (io, path, namespace, id, facets) {

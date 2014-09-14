@@ -21,8 +21,9 @@ MongoFacet.prototype.onDisconnection = function (instance, socket) {
     MongoClient.connect(this.url, function (err, db) {
       if (!err) {
         var collection = db.collection(instance.namespace);
-        // TODO should probably do something with the callback
-        collection.update({ key: instance.id }, object, { upsert: true }, function (err, db) {});
+        collection.update({ key: instance.id }, { key: instance.id, value: object }, { upsert: true }, function (err, result) {
+          db.close();
+        });
       }
     });
   }
@@ -39,8 +40,13 @@ MongoFacet.prototype.onLoad = function (instance, socket) {
         if (err) {
           deferred.reject(err);
         } else {
-          deferred.resolve(result);
+          if (result) {
+            deferred.resolve(result.value);
+          } else {
+            deferred.resolve(null);
+          }
         }
+        db.close();
       });
     }
   });
