@@ -12,6 +12,7 @@ function Blob() {
         'create': {},
         'delete': {},
         'all':    {},
+        'arrPush':{},
     };
     this.listenid = 0;
 }
@@ -242,29 +243,33 @@ function ObjectMirror(blob, path) {
     _.forOwn(this.__blob.keywords, this.__track.bind(this));
 }
 
-ObjectMirror.prototype.__set = function(key, value) {
-    this.__track(key);
-    this[key] = value;
-};
+readonly(ObjectMirror.prototype, '__set',
+    function(key, value) {
+        this.__track(key);
+        this[key] = value;
+    }
+);
 
-ObjectMirror.prototype.__track = function(key) {
-    var that = this;
-    this.__blob.addKeyword(key, this);
-    Object.defineProperty(this, key, {
-        get: function() {
-            return that.__blob.mirror(that.__path + "." + key);
-        },
-        set: function(newValue){
-            if (that.__focus[key] !== undefined)  {
-                that.__blob.update(that.__path + "." + key, newValue);
-            } else {
-                that.__blob.create(that.__path + "." + key, newValue);
-            }
-        },
-        enumerable : true,
-        configurable : true
-    });
-};
+readonly(ObjectMirror.prototype, '__track',
+    function(key) {
+        var that = this;
+        this.__blob.addKeyword(key, this);
+        Object.defineProperty(this, key, {
+            get: function() {
+                return that.__blob.mirror(that.__path + "." + key);
+            },
+            set: function(newValue){
+                if (that.__focus[key] !== undefined)  {
+                    that.__blob.update(that.__path + "." + key, newValue);
+                } else {
+                    that.__blob.create(that.__path + "." + key, newValue);
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+    }
+);
 
 function ArrayMirror(blob, path) {
     ObjectMirror.call(this, blob, path);
